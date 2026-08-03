@@ -1,0 +1,27 @@
+# Keeps the build context small and makes sure nothing that could hold a
+# secret (a stray .env.local, the local Sheets test fixtures) ever reaches the
+# Docker daemon, let alone the image.
+
+node_modules
+.next
+.git
+.gitignore
+
+*.md
+!README.md
+
+.env
+.env.*
+!.env.example
+
+npm-debug.log*
+
+# Editor/OS noise
+.vscode
+.idea
+.DS_Store
+
+# This repo's own scratch/dev artifacts
+google-apps-script
+next-env.d.ts
+tsconfig.tsbuildinfo

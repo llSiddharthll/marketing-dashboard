@@ -24,6 +24,13 @@
 .DS_Store
 *.pem
 
+# service-account keys — this project deliberately avoids ever needing one
+# (see README's "Keyless auth on Google Cloud"), so one showing up here is
+# almost always a mistake, not something to commit
+*-key.json
+sa-key*.json
+service-account*.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*
@@ -32,6 +39,16 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...but the template carries no secrets and must be committed so new
+# developers know which variables to set.
+!.env.example
+
+# working files with real secrets pasted in for pasting into a host's
+# dashboard — never belongs in history, public repo or not
+VERCEL_ENV_VARIABLES.txt
+
+# packaged deliverable, not source — rebuild instead of committing a blob
+marketing-dashboard-client-pkg.zip
 
 # vercel
 .vercel

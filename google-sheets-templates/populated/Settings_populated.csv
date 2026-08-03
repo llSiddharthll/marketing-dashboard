@@ -1,0 +1,3 @@
+Key,Value,Description
+APP_TIMEZONE,Asia/Kolkata,Default business timezone for task deadlines and completion tracking
+APP_NAME,Marketing Task Dashboard,Workspace Display Name
