@@ -25,6 +25,7 @@ import { TASK_STATUSES } from '@/lib/sheets/schema';
 import { today } from '@/lib/dates';
 import {
   hasErrors,
+  isPlausibleUrl,
   validateTaskInput,
   type FieldErrors,
 } from '@/lib/validation';
@@ -35,6 +36,8 @@ import {
   Send,
   XCircle,
   Info,
+  Paperclip,
+  ExternalLink,
 } from 'lucide-react';
 
 interface TaskDrawerProps {
@@ -43,7 +46,7 @@ interface TaskDrawerProps {
   taskToEdit?: Task | null;
 }
 
-type TabId = 'details' | 'checklist' | 'comments' | 'history';
+type TabId = 'details' | 'checklist' | 'comments' | 'attachments' | 'history';
 
 interface FormState {
   project: string;
@@ -61,6 +64,8 @@ interface FormState {
   remarks: string;
   budget: number;
   actualSpend: number;
+  boqLink: string;
+  approver: string;
 }
 
 function initialState(task: Task | null | undefined): FormState {
@@ -81,6 +86,8 @@ function initialState(task: Task | null | undefined): FormState {
       remarks: '',
       budget: 0,
       actualSpend: 0,
+      boqLink: '',
+      approver: '',
     };
   }
   return {
@@ -99,6 +106,8 @@ function initialState(task: Task | null | undefined): FormState {
     remarks: task.remarks,
     budget: task.budget ?? 0,
     actualSpend: task.actualSpend ?? 0,
+    boqLink: task.boqLink ?? '',
+    approver: task.approver ?? '',
   };
 }
 
@@ -124,6 +133,8 @@ const TaskDrawerForm: React.FC<TaskDrawerProps> = ({
     toggleSubtask,
     addSubtask,
     addComment,
+    addAttachment,
+    removeAttachment,
   } = useData();
 
   const { confirm, confirmDialog } = useConfirm();
@@ -134,6 +145,9 @@ const TaskDrawerForm: React.FC<TaskDrawerProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [newSubtask, setNewSubtask] = useState('');
   const [newComment, setNewComment] = useState('');
+  const [newAttachmentLabel, setNewAttachmentLabel] = useState('');
+  const [newAttachmentUrl, setNewAttachmentUrl] = useState('');
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
 
   const isEdit = Boolean(taskToEdit);
   const isAdmin = currentUserRole === 'Admin';
@@ -205,6 +219,11 @@ const TaskDrawerForm: React.FC<TaskDrawerProps> = ({
       count: taskToEdit?.subtasks?.length,
     },
     { id: 'comments', label: 'Comments', count: taskToEdit?.comments?.length },
+    {
+      id: 'attachments',
+      label: 'Attachments',
+      count: taskToEdit?.attachments?.length,
+    },
     { id: 'history', label: 'History', count: history.length },
   ];
 
@@ -501,6 +520,48 @@ const TaskDrawerForm: React.FC<TaskDrawerProps> = ({
                   </p>
                 )}
               </div>
+
+              <div>
+                <label htmlFor="task-boq-link" className="field-label">
+                  BOQ link
+                </label>
+                <input
+                  id="task-boq-link"
+                  type="url"
+                  value={form.boqLink}
+                  onChange={(event) => set('boqLink', event.target.value)}
+                  disabled={isReadOnly}
+                  placeholder="https://docs.google.com/..."
+                  aria-invalid={errors.boqLink ? true : undefined}
+                  className={`field ${errors.boqLink ? 'border-rose-400 dark:border-rose-700' : ''}`}
+                />
+                {errors.boqLink && (
+                  <p className="mt-1 text-[12.5px] text-rose-600 dark:text-rose-400">
+                    {errors.boqLink}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="task-approver" className="field-label">
+                  Approver
+                </label>
+                <input
+                  id="task-approver"
+                  type="text"
+                  value={form.approver}
+                  onChange={(event) => set('approver', event.target.value)}
+                  disabled={isReadOnly}
+                  placeholder="Who this approval routes to"
+                  aria-invalid={errors.approver ? true : undefined}
+                  className={`field ${errors.approver ? 'border-rose-400 dark:border-rose-700' : ''}`}
+                />
+                {errors.approver && (
+                  <p className="mt-1 text-[12.5px] text-rose-600 dark:text-rose-400">
+                    {errors.approver}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Workflow toggles */}
@@ -742,6 +803,126 @@ const TaskDrawerForm: React.FC<TaskDrawerProps> = ({
                 </Button>
               </div>
             </form>
+          </div>
+        )}
+
+        {/* --------------------------- Attachments ------------------------- */}
+        {tab === 'attachments' && taskToEdit && (
+          <div className="space-y-3">
+            {(taskToEdit.attachments?.length ?? 0) === 0 ? (
+              <p className="text-body text-fg-muted py-4 text-center">
+                No attachments yet. There is nowhere to upload a file to, so
+                this is a link — paste a Google Drive, Sheets or proposal URL.
+              </p>
+            ) : (
+              <ul className="space-y-1.5">
+                {taskToEdit.attachments!.map((attachment) => (
+                  <li key={attachment.id}>
+                    <div className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-surface-sunken group">
+                      <Paperclip
+                        className="w-3.5 h-3.5 shrink-0 text-fg-subtle"
+                        aria-hidden="true"
+                      />
+                      <a
+                        href={attachment.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="min-w-0 flex-1 text-[13.5px] text-accent hover:underline truncate"
+                      >
+                        {attachment.label}
+                      </a>
+                      <span className="text-[11.5px] text-fg-subtle shrink-0">
+                        {attachment.addedBy}
+                      </span>
+                      {!isReadOnly && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void removeAttachment(taskToEdit.id, attachment.id)
+                          }
+                          aria-label={`Remove attachment ${attachment.label}`}
+                          className="shrink-0 p-1 rounded-md text-fg-subtle opacity-0 group-hover:opacity-100 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {!isReadOnly && (
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const url = newAttachmentUrl.trim();
+                  if (!url) return;
+                  if (!isPlausibleUrl(url)) {
+                    setAttachmentError(
+                      'Must be a link starting with http:// or https://.'
+                    );
+                    return;
+                  }
+                  void addAttachment(taskToEdit.id, newAttachmentLabel, url);
+                  setNewAttachmentLabel('');
+                  setNewAttachmentUrl('');
+                  setAttachmentError(null);
+                }}
+                className="space-y-2 pt-2 border-t border-line"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.4fr] gap-2">
+                  <div>
+                    <label htmlFor="new-attachment-label" className="sr-only">
+                      Attachment label
+                    </label>
+                    <input
+                      id="new-attachment-label"
+                      type="text"
+                      value={newAttachmentLabel}
+                      onChange={(event) =>
+                        setNewAttachmentLabel(event.target.value)
+                      }
+                      placeholder="Label, e.g. Vendor BOQ"
+                      className="field"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="new-attachment-url" className="sr-only">
+                      Attachment link
+                    </label>
+                    <input
+                      id="new-attachment-url"
+                      type="url"
+                      value={newAttachmentUrl}
+                      onChange={(event) => {
+                        setNewAttachmentUrl(event.target.value);
+                        if (attachmentError) setAttachmentError(null);
+                      }}
+                      placeholder="https://drive.google.com/..."
+                      aria-invalid={attachmentError ? true : undefined}
+                      className={`field ${attachmentError ? 'border-rose-400 dark:border-rose-700' : ''}`}
+                    />
+                  </div>
+                </div>
+                {attachmentError && (
+                  <p className="text-[12.5px] text-rose-600 dark:text-rose-400">
+                    {attachmentError}
+                  </p>
+                )}
+                <div className="flex justify-end">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    disabled={!newAttachmentUrl.trim()}
+                    icon={<ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />}
+                  >
+                    Add attachment
+                  </Button>
+                </div>
+              </form>
+            )}
           </div>
         )}
 

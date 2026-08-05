@@ -31,7 +31,16 @@ export const LIMITS = {
   description: 500,
   comment: 2000,
   rejectionReason: 1000,
+  approver: 120,
+  attachmentLabel: 120,
+  url: 2000,
 } as const;
+
+/** Loose on purpose: this only catches an obviously-not-a-link typo, not a
+ *  strict RFC check — a pasted Drive/Sheets URL should never be rejected. */
+export function isPlausibleUrl(value: string): boolean {
+  return /^https?:\/\/\S+$/i.test(value.trim());
+}
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
@@ -96,6 +105,16 @@ export function validateTaskInput(input: Partial<Task>): FieldErrors {
 
   const spendError = validateMoney(input.actualSpend, 'Actual spend');
   if (spendError) errors.actualSpend = spendError;
+
+  if (input.boqLink && !isPlausibleUrl(input.boqLink)) {
+    errors.boqLink = 'Must be a link starting with http:// or https://.';
+  } else if (input.boqLink && input.boqLink.length > LIMITS.url) {
+    errors.boqLink = `Keep the link under ${LIMITS.url} characters.`;
+  }
+
+  if (input.approver && input.approver.length > LIMITS.approver) {
+    errors.approver = `Keep the approver's name under ${LIMITS.approver} characters.`;
+  }
 
   // Optional dates, when present, must be real dates.
   for (const field of [

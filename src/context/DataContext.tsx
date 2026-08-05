@@ -110,6 +110,8 @@ interface DataContextValue {
   toggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
   addSubtask: (taskId: string, title: string) => Promise<void>;
   addComment: (taskId: string, text: string) => Promise<void>;
+  addAttachment: (taskId: string, label: string, url: string) => Promise<void>;
+  removeAttachment: (taskId: string, attachmentId: string) => Promise<void>;
 
   // Master data
   addMasterItem: (
@@ -802,6 +804,47 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
     [currentUserName, currentUserRole, mutateTask]
   );
 
+  const addAttachment = useCallback(
+    (taskId: string, label: string, url: string) => {
+      const trimmedUrl = url.trim();
+      if (!trimmedUrl) return Promise.resolve();
+      const trimmedLabel = label.trim() || trimmedUrl;
+      return mutateTask(
+        taskId,
+        (task) => ({
+          ...task,
+          attachments: [
+            ...(task.attachments ?? []),
+            {
+              id: newRequestId(),
+              label: trimmedLabel,
+              url: trimmedUrl,
+              addedBy: currentUserName,
+              addedAt: new Date().toISOString(),
+            },
+          ],
+        }),
+        'Add attachment'
+      );
+    },
+    [currentUserName, mutateTask]
+  );
+
+  const removeAttachment = useCallback(
+    (taskId: string, attachmentId: string) =>
+      mutateTask(
+        taskId,
+        (task) => ({
+          ...task,
+          attachments: (task.attachments ?? []).filter(
+            (item) => item.id !== attachmentId
+          ),
+        }),
+        'Remove attachment'
+      ),
+    [mutateTask]
+  );
+
   /* -------------------------- Master actions --------------------------- */
 
   const addMasterItem = useCallback(
@@ -1003,6 +1046,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
       toggleSubtask,
       addSubtask,
       addComment,
+      addAttachment,
+      removeAttachment,
       addMasterItem,
       updateMasterItem,
       removeMasterItem,
@@ -1044,6 +1089,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
       toggleSubtask,
       addSubtask,
       addComment,
+      addAttachment,
+      removeAttachment,
       addMasterItem,
       updateMasterItem,
       removeMasterItem,

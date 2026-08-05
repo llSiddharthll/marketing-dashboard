@@ -47,6 +47,9 @@ yarn-error.log*
 # dashboard — never belongs in history, public repo or not
 VERCEL_ENV_VARIABLES.txt
 
+# client voice notes / drop folder — working input, not project source
+clients/
+
 # packaged deliverable, not source — rebuild instead of committing a blob
 marketing-dashboard-client-pkg.zip
 

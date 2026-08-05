@@ -22,6 +22,19 @@ export interface TaskComment {
   timestamp: string;
 }
 
+/**
+ * A link to supporting material — a vendor proposal, a BOQ, a Google Drive
+ * folder. The app is Sheets-backed with no file storage of its own, so this
+ * is a URL plus a label, not an uploaded file.
+ */
+export interface TaskAttachment {
+  id: string;
+  label: string;
+  url: string;
+  addedBy: string;
+  addedAt: string;
+}
+
 export interface Task {
   id: string;
   project: string;
@@ -45,8 +58,17 @@ export interface Task {
   remarks: string;
   budget?: number;
   actualSpend?: number;
+  /** Link to the Bill of Quantities for this task's cost approval, if any. */
+  boqLink?: string | null;
+  /**
+   * Who this task's management approval should be routed to. Free text (a
+   * name), not a role — the app has one shared "Management" role, but a
+   * specific task's cost/BOQ approval may need a specific person's sign-off.
+   */
+  approver?: string;
   subtasks?: Subtask[];
   comments?: TaskComment[];
+  attachments?: TaskAttachment[];
   isOverdue: boolean;
   createdAt: string;
   /**

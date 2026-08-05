@@ -171,6 +171,10 @@ export const TASK_COLUMNS = [
   // deleting a row would shift every row below it and could send a concurrent
   // update to the wrong record. It also preserves the audit trail.
   'Deleted At',
+  // Appended after the original 27 columns — see the file-level rule above.
+  'BOQ Link',
+  'Approver',
+  'Attachments',
 ] as const;
 
 /**
@@ -224,6 +228,9 @@ export function taskFromRow(row: unknown[]): Task {
     createdAt: readString(row[24]),
     updatedAt: readString(row[25]),
     deletedAt: readOptionalString(row[26]),
+    boqLink: readOptionalString(row[27]),
+    approver: readString(row[28]),
+    attachments: readJsonList(row[29]),
   };
 }
 
@@ -256,6 +263,9 @@ export function taskToRow(task: Task): (string | number)[] {
     task.createdAt,
     task.updatedAt,
     task.deletedAt ?? '',
+    task.boqLink ?? '',
+    task.approver ?? '',
+    writeJsonList(task.attachments),
   ];
 }
 

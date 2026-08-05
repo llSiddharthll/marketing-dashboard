@@ -2,10 +2,11 @@
 
 import React, { useMemo, useState } from 'react';
 import { useData } from '@/context/DataContext';
-import type { MasterCategory, MasterItem } from '@/types/dashboard';
+import type { MasterCategory, MasterItem, Task } from '@/types/dashboard';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/Panel';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
   Plus,
   Pencil,
@@ -83,24 +84,30 @@ export const MasterDataView: React.FC = () => {
     [masterItems, category]
   );
 
+  const usageField = {
+    Projects: 'project',
+    Departments: 'department',
+    'Team Members': 'internalPoc',
+    Agencies: 'agency',
+    Vendors: 'vendor',
+  }[category] as 'project' | 'department' | 'internalPoc' | 'agency' | 'vendor';
+
   /** Live usage per item name, shown in the table so "can I remove this?" is
    *  answerable at a glance rather than only inside the removal dialog. */
   const usage = useMemo(() => {
-    const field = {
-      Projects: 'project',
-      Departments: 'department',
-      'Team Members': 'internalPoc',
-      Agencies: 'agency',
-      Vendors: 'vendor',
-    }[category] as 'project' | 'department' | 'internalPoc' | 'agency' | 'vendor';
-
     const counts = new Map<string, number>();
     for (const task of tasks) {
-      const value = task[field];
+      const value = task[usageField];
       if (value) counts.set(value, (counts.get(value) ?? 0) + 1);
     }
     return counts;
-  }, [tasks, category]);
+  }, [tasks, usageField]);
+
+  /** The tasks a given item's name is actually used by, for the listing dialog. */
+  const tasksFor = (item: MasterItem): Task[] =>
+    tasks.filter((task) => task[usageField] === item.name);
+
+  const [taskListItem, setTaskListItem] = useState<MasterItem | null>(null);
 
   const openAdd = () => {
     setEditing(null);
@@ -269,10 +276,18 @@ export const MasterDataView: React.FC = () => {
                           {item.description || '—'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[13px] text-fg-muted tabular">
-                        {references === 0
-                          ? '—'
-                          : `${references} task${references === 1 ? '' : 's'}`}
+                      <td className="px-4 py-3 text-[13px] tabular">
+                        {references === 0 ? (
+                          <span className="text-fg-muted">—</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setTaskListItem(item)}
+                            className="text-accent hover:underline"
+                          >
+                            {references} task{references === 1 ? '' : 's'}
+                          </button>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <span
@@ -483,6 +498,57 @@ export const MasterDataView: React.FC = () => {
               )}
             </div>
           </div>
+        )}
+      </Dialog>
+
+      {/* Tasks under a project/department/agency/vendor/team member — brief +
+          status, so "what's happening under CP67?" doesn't need the full task
+          list filtered by hand. */}
+      <Dialog
+        open={taskListItem !== null}
+        onClose={() => setTaskListItem(null)}
+        title={taskListItem ? `Tasks under ${taskListItem.name}` : ''}
+        size="lg"
+      >
+        {taskListItem && (
+          <ul className="space-y-2">
+            {tasksFor(taskListItem).map((task) => (
+              <li
+                key={task.id}
+                className="p-3 rounded-lg border border-line space-y-1.5"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-[13.5px] font-medium leading-snug">
+                    {task.taskName}
+                  </span>
+                  <StatusBadge
+                    status={task.taskProgress}
+                    isOverdue={task.isOverdue}
+                    size="sm"
+                    className="shrink-0"
+                  />
+                </div>
+                {task.taskBrief && (
+                  <p className="text-[12.5px] text-fg-muted leading-relaxed">
+                    {task.taskBrief}
+                  </p>
+                )}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-fg-subtle">
+                  <span>{task.internalPoc}</span>
+                  {task.deadline && <span>Due {task.deadline}</span>}
+                  {task.budget ? (
+                    <span>₹{task.budget.toLocaleString('en-IN')}</span>
+                  ) : null}
+                  {task.taskProgress === 'To Be Approved by Management' &&
+                    !task.boqLink && (
+                      <span className="text-amber-700 dark:text-amber-300">
+                        BOQ not attached yet
+                      </span>
+                    )}
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </Dialog>
     </div>

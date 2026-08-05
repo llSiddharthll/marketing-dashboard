@@ -10,7 +10,16 @@ import { PriorityIndicator } from '@/components/ui/StatusBadge';
 import { TaskDrawer } from '@/components/tasks/TaskDrawer';
 import { daysBetween, today } from '@/lib/dates';
 import { LIMITS } from '@/lib/validation';
-import { CheckCircle2, XCircle, Lock, MessageSquare } from 'lucide-react';
+import {
+  CheckCircle2,
+  XCircle,
+  Lock,
+  MessageSquare,
+  FileSpreadsheet,
+} from 'lucide-react';
+
+const formatCost = (value: number | undefined): string =>
+  value ? `₹${value.toLocaleString('en-IN')}` : '—';
 
 /**
  * The management approval queue.
@@ -153,6 +162,33 @@ export const PendingApprovalsView: React.FC = () => {
                   <PriorityIndicator priority={task.priority} />
                 </dd>
               </div>
+              <div>
+                <dt className="text-fg-subtle">Cost</dt>
+                <dd className="tabular">{formatCost(task.budget)}</dd>
+              </div>
+              <div>
+                <dt className="text-fg-subtle">BOQ</dt>
+                <dd>
+                  {task.boqLink ? (
+                    <a
+                      href={task.boqLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(event) => event.stopPropagation()}
+                      className="inline-flex items-center gap-1 text-accent hover:underline"
+                    >
+                      <FileSpreadsheet className="w-3.5 h-3.5" aria-hidden="true" />
+                      View
+                    </a>
+                  ) : (
+                    '—'
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-fg-subtle">To</dt>
+                <dd>{task.approver || '—'}</dd>
+              </div>
             </dl>
 
             {canDecide && (
@@ -214,6 +250,18 @@ export const PendingApprovalsView: React.FC = () => {
                 <th scope="col" className="px-3 py-2.5 w-28">
                   <span className="text-label">Deadline</span>
                 </th>
+                {/* Cost, BOQ and To route the approval decision — asked for
+                    directly: what does this cost, what's the BOQ, and who
+                    does it need to go to. */}
+                <th scope="col" className="px-3 py-2.5 w-24">
+                  <span className="text-label">Cost</span>
+                </th>
+                <th scope="col" className="px-3 py-2.5 w-16 text-center">
+                  <span className="text-label">BOQ</span>
+                </th>
+                <th scope="col" className="px-3 py-2.5 w-28">
+                  <span className="text-label">To</span>
+                </th>
                 <th scope="col" className="px-3 py-2.5 w-16 text-center">
                   <span className="text-label">Notes</span>
                 </th>
@@ -263,6 +311,30 @@ export const PendingApprovalsView: React.FC = () => {
                     }`}
                   >
                     {task.deadline || '—'}
+                  </td>
+                  <td className="px-3 py-3 text-[13px] text-fg-muted tabular">
+                    {formatCost(task.budget)}
+                  </td>
+                  <td className="px-3 py-3 text-center">
+                    {task.boqLink ? (
+                      <a
+                        href={task.boqLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(event) => event.stopPropagation()}
+                        aria-label={`Open BOQ for ${task.taskName}`}
+                        className="inline-flex text-fg-muted hover:text-accent transition-colors"
+                      >
+                        <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
+                      </a>
+                    ) : (
+                      <span className="text-fg-subtle" aria-hidden="true">
+                        —
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-3 py-3 text-[13px] text-fg-muted">
+                    {task.approver || '—'}
                   </td>
                   <td className="px-3 py-3 text-center">
                     {(task.comments?.length ?? 0) > 0 ? (
