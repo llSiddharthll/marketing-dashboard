@@ -26,6 +26,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     budget: 120000,
     actualSpend: 45000,
     boqLink: 'https://docs.google.com/spreadsheets/d/boq123',
+    reportLink: 'https://docs.google.com/spreadsheets/d/report123',
     approver: 'Sahil Sehgal',
     subtasks: [],
     comments: [],

@@ -60,6 +60,8 @@ export interface Task {
   actualSpend?: number;
   /** Link to the Bill of Quantities for this task's cost approval, if any. */
   boqLink?: string | null;
+  /** Link to Google Sheet, Google Drive folder, report, or proof image URL. */
+  reportLink?: string | null;
   /**
    * Who this task's management approval should be routed to. Free text (a
    * name), not a role — the app has one shared "Management" role, but a

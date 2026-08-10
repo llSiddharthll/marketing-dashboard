@@ -18,6 +18,7 @@ import React, { useMemo, useState } from 'react';
 import type { Task, TaskStatus } from '@/types/dashboard';
 import { useData } from '@/context/DataContext';
 import { PriorityIndicator } from '@/components/ui/StatusBadge';
+import { TaskLinkButton } from '@/components/ui/TaskLinkButton';
 import { STATUS_VISUALS } from '@/lib/design/statusStyles';
 import { daysBetween, today } from '@/lib/dates';
 import { TASK_STATUSES } from '@/lib/sheets/schema';
@@ -190,6 +191,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                               {task.project}
                             </span>
                           </button>
+                          <TaskLinkButton task={task} size="sm" />
                         </div>
 
                         <div className="flex items-center justify-between gap-2">

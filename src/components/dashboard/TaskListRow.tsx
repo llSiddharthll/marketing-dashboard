@@ -10,6 +10,7 @@
 import React from 'react';
 import type { Task } from '@/types/dashboard';
 import { StatusBadge, PriorityIndicator } from '@/components/ui/StatusBadge';
+import { TaskLinkButton } from '@/components/ui/TaskLinkButton';
 import { daysBetween, today } from '@/lib/dates';
 
 interface TaskListRowProps {
@@ -45,8 +46,11 @@ export const TaskListRow: React.FC<TaskListRowProps> = ({
       <PriorityIndicator priority={task.priority} iconOnly />
 
       <span className="flex-1 min-w-0">
-        <span className="block text-[13.5px] font-medium text-fg truncate">
-          {task.taskName}
+        <span className="flex items-center gap-2">
+          <span className="block text-[13.5px] font-medium text-fg truncate">
+            {task.taskName}
+          </span>
+          <TaskLinkButton task={task} />
         </span>
         <span className="block text-[12.5px] text-fg-subtle truncate">
           {task.project} · {task.internalPoc}

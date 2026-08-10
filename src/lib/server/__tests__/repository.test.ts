@@ -48,6 +48,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     budget: 120000,
     actualSpend: 45000,
     boqLink: null,
+    reportLink: null,
     approver: '',
     subtasks: [],
     comments: [],

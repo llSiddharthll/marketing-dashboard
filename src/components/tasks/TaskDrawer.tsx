@@ -65,6 +65,7 @@ interface FormState {
   budget: number;
   actualSpend: number;
   boqLink: string;
+  reportLink: string;
   approver: string;
 }
 
@@ -87,6 +88,7 @@ function initialState(task: Task | null | undefined): FormState {
       budget: 0,
       actualSpend: 0,
       boqLink: '',
+      reportLink: '',
       approver: '',
     };
   }
@@ -107,6 +109,7 @@ function initialState(task: Task | null | undefined): FormState {
     budget: task.budget ?? 0,
     actualSpend: task.actualSpend ?? 0,
     boqLink: task.boqLink ?? '',
+    reportLink: task.reportLink ?? '',
     approver: task.approver ?? '',
   };
 }
@@ -522,8 +525,45 @@ const TaskDrawerForm: React.FC<TaskDrawerProps> = ({
               </div>
 
               <div>
-                <label htmlFor="task-boq-link" className="field-label">
-                  BOQ link
+                <label htmlFor="task-report-link" className="field-label flex items-center justify-between">
+                  <span>Report / Google Link (URL)</span>
+                  {form.reportLink && (
+                    <a
+                      href={form.reportLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11.5px] font-medium text-accent hover:underline flex items-center gap-1"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Test link
+                    </a>
+                  )}
+                </label>
+                <input
+                  id="task-report-link"
+                  type="url"
+                  value={form.reportLink}
+                  onChange={(event) => set('reportLink', event.target.value)}
+                  disabled={isReadOnly}
+                  placeholder="https://docs.google.com/spreadsheets/d/..."
+                  className="field"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="task-boq-link" className="field-label flex items-center justify-between">
+                  <span>BOQ link</span>
+                  {form.boqLink && (
+                    <a
+                      href={form.boqLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11.5px] font-medium text-accent hover:underline flex items-center gap-1"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Test link
+                    </a>
+                  )}
                 </label>
                 <input
                   id="task-boq-link"

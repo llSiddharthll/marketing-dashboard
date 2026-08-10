@@ -175,6 +175,7 @@ export const TASK_COLUMNS = [
   'BOQ Link',
   'Approver',
   'Attachments',
+  'Report Link',
 ] as const;
 
 /**
@@ -231,6 +232,7 @@ export function taskFromRow(row: unknown[]): Task {
     boqLink: readOptionalString(row[27]),
     approver: readString(row[28]),
     attachments: readJsonList(row[29]),
+    reportLink: readOptionalString(row[30]),
   };
 }
 
@@ -266,6 +268,7 @@ export function taskToRow(task: Task): (string | number)[] {
     task.boqLink ?? '',
     task.approver ?? '',
     writeJsonList(task.attachments),
+    task.reportLink ?? '',
   ];
 }
 

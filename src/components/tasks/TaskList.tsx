@@ -8,6 +8,7 @@ import { TaskDrawer } from './TaskDrawer';
 import { KanbanBoard } from './KanbanBoard';
 import { TaskFilters, type Filters, EMPTY_FILTERS } from './TaskFilters';
 import { StatusBadge, PriorityIndicator } from '@/components/ui/StatusBadge';
+import { TaskLinkButton } from '@/components/ui/TaskLinkButton';
 import { Button, Segmented } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/Panel';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
@@ -440,28 +441,29 @@ export const TaskList: React.FC = () => {
                         </td>
 
                         <td className="px-3 py-2.5">
-                          {/* The whole cell is the target, not just the text, so
-                              the click area matches what looks clickable. */}
-                          <button
-                            type="button"
-                            onClick={() => openEdit(task)}
-                            className="text-left w-full group/link"
-                          >
-                            <span className="flex items-center gap-1.5">
-                              {task.isOverdue && (
-                                <span
-                                  className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"
-                                  aria-hidden="true"
-                                />
-                              )}
-                              <span className="text-[13.5px] font-medium truncate group-hover/link:text-accent transition-colors">
-                                {task.taskName}
+                          <div className="flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => openEdit(task)}
+                              className="text-left flex-1 min-w-0 group/link"
+                            >
+                              <span className="flex items-center gap-1.5">
+                                {task.isOverdue && (
+                                  <span
+                                    className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"
+                                    aria-hidden="true"
+                                  />
+                                )}
+                                <span className="text-[13.5px] font-medium truncate group-hover/link:text-accent transition-colors">
+                                  {task.taskName}
+                                </span>
                               </span>
-                            </span>
-                            <span className="block font-mono text-[11px] text-fg-subtle mt-0.5">
-                              {task.id}
-                            </span>
-                          </button>
+                              <span className="block font-mono text-[11px] text-fg-subtle mt-0.5">
+                                {task.id}
+                              </span>
+                            </button>
+                            <TaskLinkButton task={task} showLabel />
+                          </div>
                         </td>
 
                         <td className="px-3 py-2.5 text-[13px] text-fg-muted truncate">
