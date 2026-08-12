@@ -546,8 +546,14 @@ const TaskDrawerForm: React.FC<TaskDrawerProps> = ({
                   onChange={(event) => set('reportLink', event.target.value)}
                   disabled={isReadOnly}
                   placeholder="https://docs.google.com/spreadsheets/d/..."
-                  className="field"
+                  aria-invalid={errors.reportLink ? true : undefined}
+                  className={`field ${errors.reportLink ? 'border-rose-400 dark:border-rose-700' : ''}`}
                 />
+                {errors.reportLink && (
+                  <p className="mt-1 text-[12.5px] text-rose-600 dark:text-rose-400">
+                    {errors.reportLink}
+                  </p>
+                )}
               </div>
 
               <div>

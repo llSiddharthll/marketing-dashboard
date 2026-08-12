@@ -66,8 +66,12 @@ function pickClientEditableFields(input: Record<string, unknown>): Partial<Task>
     'remarks',
     'budget',
     'actualSpend',
+    'boqLink',
+    'reportLink',
+    'approver',
     'subtasks',
     'comments',
+    'attachments',
   ];
 
   const result: Record<string, unknown> = {};
@@ -92,6 +96,9 @@ function coerceTaskFields(input: Partial<Task>): Partial<Task> {
     'vendor',
     'deadline',
     'remarks',
+    'boqLink',
+    'reportLink',
+    'approver',
   ] as const) {
     if (key in out) {
       (out as Record<string, unknown>)[key] = trimIfString(out[key]);
@@ -154,8 +161,12 @@ export async function createTask(
     remarks: input.remarks ?? '',
     budget: input.budget ?? 0,
     actualSpend: input.actualSpend ?? 0,
+    boqLink: input.boqLink ?? null,
+    reportLink: input.reportLink ?? null,
+    approver: input.approver ?? '',
     subtasks: input.subtasks ?? [],
     comments: input.comments ?? [],
+    attachments: input.attachments ?? [],
     isOverdue: false,
     createdAt: timestamp,
     updatedAt: timestamp,

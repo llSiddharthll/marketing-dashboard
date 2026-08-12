@@ -112,6 +112,12 @@ export function validateTaskInput(input: Partial<Task>): FieldErrors {
     errors.boqLink = `Keep the link under ${LIMITS.url} characters.`;
   }
 
+  if (input.reportLink && !isPlausibleUrl(input.reportLink)) {
+    errors.reportLink = 'Must be a link starting with http:// or https://.';
+  } else if (input.reportLink && input.reportLink.length > LIMITS.url) {
+    errors.reportLink = `Keep the link under ${LIMITS.url} characters.`;
+  }
+
   if (input.approver && input.approver.length > LIMITS.approver) {
     errors.approver = `Keep the approver's name under ${LIMITS.approver} characters.`;
   }

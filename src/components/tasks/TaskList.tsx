@@ -188,8 +188,11 @@ export const TaskList: React.FC = () => {
   const allVisibleSelected =
     sorted.length > 0 && selectedIds.length === sorted.length;
 
+  // No width on `taskName`: with `table-fixed` on the table, a column left
+  // unsized takes up whatever the fixed-width columns don't, instead of the
+  // title growing or shrinking unpredictably with row content.
   const columns: { field: SortField; label: string; className: string }[] = [
-    { field: 'taskName', label: 'Task', className: 'min-w-[240px]' },
+    { field: 'taskName', label: 'Task', className: '' },
     { field: 'project', label: 'Project', className: 'w-44' },
     { field: 'internalPoc', label: 'Assigned to', className: 'w-36' },
     { field: 'priority', label: 'Priority', className: 'w-28' },
@@ -353,7 +356,7 @@ export const TaskList: React.FC = () => {
           {/* Desktop: table */}
           <div className="hidden md:block card overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left">
+              <table className="w-full table-fixed text-left">
                 <caption className="sr-only">
                   Tasks, sortable by column. Currently sorted by{' '}
                   {columns.find((c) => c.field === sort.field)?.label} in{' '}
@@ -447,20 +450,25 @@ export const TaskList: React.FC = () => {
                               onClick={() => openEdit(task)}
                               className="text-left flex-1 min-w-0 group/link"
                             >
-                              <span className="flex items-center gap-1.5">
+                              <span className="flex items-start gap-1.5">
                                 {task.isOverdue && (
                                   <span
-                                    className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"
+                                    className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0 mt-1.5"
                                     aria-hidden="true"
                                   />
                                 )}
-                                <span className="text-[13.5px] font-medium truncate group-hover/link:text-accent transition-colors">
+                                <span className="text-[13.5px] font-medium wrap-break-word leading-snug group-hover/link:text-accent transition-colors">
                                   {task.taskName}
                                 </span>
                               </span>
-                              <span className="block font-mono text-[11px] text-fg-subtle mt-0.5">
-                                {task.id}
-                              </span>
+                              {task.remarks && (
+                                <span
+                                  className="block text-[12px] text-fg-subtle truncate mt-0.5"
+                                  title={task.remarks}
+                                >
+                                  {task.remarks}
+                                </span>
+                              )}
                             </button>
                             <TaskLinkButton task={task} showLabel />
                           </div>

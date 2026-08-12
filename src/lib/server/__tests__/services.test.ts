@@ -156,6 +156,39 @@ describe('taskService', () => {
       );
       expect(task.taskName).toBe('Padded name');
     });
+
+    // Regression: these four fields were missing from the server's
+    // client-editable field whitelist, so a value entered in the form was
+    // silently discarded on save instead of persisting.
+    it('persists BOQ link, report link, approver and attachments', async () => {
+      const { task } = await createTask(
+        repo,
+        validTaskBody({
+          boqLink: 'https://docs.google.com/spreadsheets/d/boq123',
+          reportLink: 'https://drive.google.com/drive/folders/report123',
+          approver: 'Sahil Sehgal',
+          attachments: [
+            {
+              id: 'ATT-1',
+              label: 'Vendor proposal',
+              url: 'https://drive.google.com/file/vendor-proposal',
+              addedBy: 'Aarav Sharma',
+              addedAt: '2026-07-20T06:00:00.000Z',
+            },
+          ],
+        }),
+        MARKETER
+      );
+      expect(task.boqLink).toBe('https://docs.google.com/spreadsheets/d/boq123');
+      expect(task.reportLink).toBe(
+        'https://drive.google.com/drive/folders/report123'
+      );
+      expect(task.approver).toBe('Sahil Sehgal');
+      expect(task.attachments).toHaveLength(1);
+      expect(task.attachments![0].url).toBe(
+        'https://drive.google.com/file/vendor-proposal'
+      );
+    });
   });
 
   describe('updateTask', () => {
@@ -173,6 +206,45 @@ describe('taskService', () => {
       expect(
         snapshot.activityLogs.some((l) => l.action === 'Task Updated')
       ).toBe(true);
+    });
+
+    it('persists an edit to BOQ link, report link, approver and attachments', async () => {
+      const created = await createTask(repo, validTaskBody(), MARKETER);
+      const { task } = await updateTask(
+        repo,
+        created.task.id,
+        {
+          boqLink: 'https://docs.google.com/spreadsheets/d/boq456',
+          reportLink: 'https://drive.google.com/drive/folders/report456',
+          approver: 'Neha Iyer',
+          attachments: [
+            {
+              id: 'ATT-2',
+              label: 'Signed BOQ',
+              url: 'https://drive.google.com/file/signed-boq',
+              addedBy: 'Aarav Sharma',
+              addedAt: '2026-07-21T06:00:00.000Z',
+            },
+          ],
+          expectedUpdatedAt: created.task.updatedAt,
+        },
+        MARKETER
+      );
+
+      expect(task.boqLink).toBe('https://docs.google.com/spreadsheets/d/boq456');
+      expect(task.reportLink).toBe(
+        'https://drive.google.com/drive/folders/report456'
+      );
+      expect(task.approver).toBe('Neha Iyer');
+      expect(task.attachments).toHaveLength(1);
+      expect(task.attachments![0].label).toBe('Signed BOQ');
+
+      // And that it actually landed in the sheet, not just the return value.
+      const reloaded = await repo.getTask(created.task.id);
+      expect(reloaded?.task.boqLink).toBe(
+        'https://docs.google.com/spreadsheets/d/boq456'
+      );
+      expect(reloaded?.task.attachments).toHaveLength(1);
     });
 
     it('records every automation log entry, not just the last one', async () => {
