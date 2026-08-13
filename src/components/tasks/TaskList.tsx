@@ -12,7 +12,17 @@ import { TaskLinkButton } from '@/components/ui/TaskLinkButton';
 import { Button, Segmented } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/Panel';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableCaption,
+} from '@/components/ui/table';
 import { PRIORITY_WEIGHT } from '@/lib/design/statusStyles';
+import { getPrimaryTaskLink } from '@/lib/tasks/taskLinks';
 import { exportTasksToCsv } from '@/lib/client/exportCsv';
 import {
   Plus,
@@ -193,8 +203,8 @@ export const TaskList: React.FC = () => {
   // title growing or shrinking unpredictably with row content.
   const columns: { field: SortField; label: string; className: string }[] = [
     { field: 'taskName', label: 'Task', className: '' },
-    { field: 'project', label: 'Project', className: 'w-44' },
-    { field: 'internalPoc', label: 'Assigned to', className: 'w-36' },
+    { field: 'project', label: 'Project', className: 'w-48' },
+    { field: 'internalPoc', label: 'Assigned to', className: 'w-40' },
     { field: 'priority', label: 'Priority', className: 'w-28' },
     { field: 'taskProgress', label: 'Status', className: 'w-40' },
     { field: 'deadline', label: 'Deadline', className: 'w-28' },
@@ -355,181 +365,185 @@ export const TaskList: React.FC = () => {
 
           {/* Desktop: table */}
           <div className="hidden md:block card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full table-fixed text-left">
-                <caption className="sr-only">
-                  Tasks, sortable by column. Currently sorted by{' '}
-                  {columns.find((c) => c.field === sort.field)?.label} in{' '}
-                  {sort.direction === 'asc' ? 'ascending' : 'descending'} order.
-                </caption>
-                <thead>
-                  <tr className="border-b border-line bg-surface-sunken/60">
-                    <th scope="col" className="w-10 px-3 py-2.5">
-                      <input
-                        type="checkbox"
-                        checked={allVisibleSelected}
-                        aria-label="Select all visible tasks"
-                        onChange={(event) =>
-                          setSelectedIds(
-                            event.target.checked ? sorted.map((t) => t.id) : []
-                          )
-                        }
-                        className="rounded border-line-strong"
-                      />
-                    </th>
+            <Table minWidth={980}>
+              <TableCaption>
+                Tasks, sortable by column. Currently sorted by{' '}
+                {columns.find((c) => c.field === sort.field)?.label} in{' '}
+                {sort.direction === 'asc' ? 'ascending' : 'descending'} order.
+              </TableCaption>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-12 px-3">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      aria-label="Select all visible tasks"
+                      onChange={(event) =>
+                        setSelectedIds(
+                          event.target.checked ? sorted.map((t) => t.id) : []
+                        )
+                      }
+                      className="rounded border-line-strong"
+                    />
+                  </TableHead>
 
-                    {columns.map((column) => {
-                      const active = sort.field === column.field;
-                      return (
-                        <th
-                          key={column.field}
-                          scope="col"
-                          aria-sort={
-                            active
-                              ? sort.direction === 'asc'
-                                ? 'ascending'
-                                : 'descending'
-                              : 'none'
-                          }
-                          className={`px-3 py-2.5 ${column.className}`}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => toggleSort(column.field)}
-                            className="inline-flex items-center gap-1 text-label hover:text-fg transition-colors"
-                          >
-                            {column.label}
-                            {active ? (
-                              sort.direction === 'asc' ? (
-                                <ArrowUp className="w-3 h-3" aria-hidden="true" />
-                              ) : (
-                                <ArrowDown className="w-3 h-3" aria-hidden="true" />
-                              )
-                            ) : null}
-                          </button>
-                        </th>
-                      );
-                    })}
-
-                    <th scope="col" className="w-20 px-3 py-2.5">
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody className="divide-y divide-line">
-                  {sorted.map((task) => {
-                    const isSelected = selectedIds.includes(task.id);
+                  {columns.map((column) => {
+                    const active = sort.field === column.field;
                     return (
-                      <tr
-                        key={task.id}
-                        className={`group transition-colors ${
-                          isSelected ? 'bg-accent-soft/50' : 'hover:bg-surface-sunken/60'
-                        }`}
+                      <TableHead
+                        key={column.field}
+                        aria-sort={
+                          active
+                            ? sort.direction === 'asc'
+                              ? 'ascending'
+                              : 'descending'
+                            : 'none'
+                        }
+                        className={column.className}
                       >
-                        <td className="px-3 py-2.5">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            aria-label={`Select ${task.taskName}`}
-                            onChange={() =>
-                              setSelectedIds((previous) =>
-                                previous.includes(task.id)
-                                  ? previous.filter((id) => id !== task.id)
-                                  : [...previous, task.id]
-                              )
-                            }
-                            className="rounded border-line-strong"
-                          />
-                        </td>
-
-                        <td className="px-3 py-2.5">
-                          <div className="flex items-center justify-between gap-2">
-                            <button
-                              type="button"
-                              onClick={() => openEdit(task)}
-                              className="text-left flex-1 min-w-0 group/link"
-                            >
-                              <span className="flex items-start gap-1.5">
-                                {task.isOverdue && (
-                                  <span
-                                    className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0 mt-1.5"
-                                    aria-hidden="true"
-                                  />
-                                )}
-                                <span className="text-[13.5px] font-medium wrap-break-word leading-snug group-hover/link:text-accent transition-colors">
-                                  {task.taskName}
-                                </span>
-                              </span>
-                              {task.remarks && (
-                                <span
-                                  className="block text-[12px] text-fg-subtle truncate mt-0.5"
-                                  title={task.remarks}
-                                >
-                                  {task.remarks}
-                                </span>
-                              )}
-                            </button>
-                            <TaskLinkButton task={task} showLabel />
-                          </div>
-                        </td>
-
-                        <td className="px-3 py-2.5 text-[13px] text-fg-muted truncate">
-                          {task.project}
-                        </td>
-                        <td className="px-3 py-2.5 text-[13px] truncate">
-                          {task.internalPoc}
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <PriorityIndicator priority={task.priority} />
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <StatusBadge
-                            status={task.taskProgress}
-                            isOverdue={task.isOverdue}
-                            size="sm"
-                          />
-                        </td>
-                        <td
-                          className={`px-3 py-2.5 text-[13px] tabular ${
-                            task.isOverdue
-                              ? 'text-rose-600 dark:text-rose-400 font-medium'
-                              : 'text-fg-muted'
-                          }`}
+                        <button
+                          type="button"
+                          onClick={() => toggleSort(column.field)}
+                          className="inline-flex items-center gap-1 hover:text-fg transition-colors"
                         >
-                          {task.deadline || '—'}
-                        </td>
-
-                        <td className="px-3 py-2.5">
-                          {/* Revealed on hover for a calmer table, but always
-                              present for keyboard and screen-reader users. */}
-                          <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-                            <button
-                              type="button"
-                              onClick={() => openEdit(task)}
-                              aria-label={`Edit ${task.taskName}`}
-                              className="p-1.5 rounded-md text-fg-subtle hover:text-fg hover:bg-surface transition-colors"
-                            >
-                              <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
-                            </button>
-                            {canDelete && (
-                              <button
-                                type="button"
-                                onClick={() => void handleDelete(task)}
-                                aria-label={`Archive ${task.taskName}`}
-                                className="p-1.5 rounded-md text-fg-subtle hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
+                          {column.label}
+                          {active ? (
+                            sort.direction === 'asc' ? (
+                              <ArrowUp className="w-3 h-3" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="w-3 h-3" aria-hidden="true" />
+                            )
+                          ) : null}
+                        </button>
+                      </TableHead>
                     );
                   })}
-                </tbody>
-              </table>
-            </div>
+
+                  <TableHead className="w-20">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {sorted.map((task) => {
+                  const isSelected = selectedIds.includes(task.id);
+                  const link = getPrimaryTaskLink(task);
+                  return (
+                    <TableRow
+                      key={task.id}
+                      className={
+                        isSelected
+                          ? 'bg-accent-soft/50'
+                          : 'hover:bg-surface-sunken/60'
+                      }
+                    >
+                      <TableCell className="align-middle px-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          aria-label={`Select ${task.taskName}`}
+                          onChange={() =>
+                            setSelectedIds((previous) =>
+                              previous.includes(task.id)
+                                ? previous.filter((id) => id !== task.id)
+                                : [...previous, task.id]
+                            )
+                          }
+                          className="rounded border-line-strong"
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <button
+                          type="button"
+                          onClick={() => openEdit(task)}
+                          className="text-left w-full group/link"
+                        >
+                          {/* Link and overdue marker sit above the title, in
+                              their own row, so they're always fully visible
+                              instead of competing with a long task name for
+                              width and getting clipped. */}
+                          {(link || task.isOverdue) && (
+                            <span className="flex items-center gap-2 mb-1.5">
+                              {task.isOverdue && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-rose-600 dark:text-rose-400">
+                                  <span
+                                    className="w-1.5 h-1.5 rounded-full bg-rose-500"
+                                    aria-hidden="true"
+                                  />
+                                  Overdue
+                                </span>
+                              )}
+                              <TaskLinkButton task={task} showLabel />
+                            </span>
+                          )}
+                          <span className="block text-[14px] font-medium text-fg wrap-break-word leading-snug group-hover/link:text-accent transition-colors">
+                            {task.taskName}
+                          </span>
+                          {task.remarks && (
+                            <span className="block text-[12.5px] text-fg-subtle wrap-break-word leading-relaxed mt-1">
+                              {task.remarks}
+                            </span>
+                          )}
+                        </button>
+                      </TableCell>
+
+                      <TableCell className="text-fg-muted wrap-break-word">
+                        {task.project}
+                      </TableCell>
+                      <TableCell className="wrap-break-word">
+                        {task.internalPoc}
+                      </TableCell>
+                      <TableCell>
+                        <PriorityIndicator priority={task.priority} />
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          status={task.taskProgress}
+                          isOverdue={task.isOverdue}
+                          size="sm"
+                        />
+                      </TableCell>
+                      <TableCell
+                        className={`tabular ${
+                          task.isOverdue
+                            ? 'text-rose-600 dark:text-rose-400 font-medium'
+                            : 'text-fg-muted'
+                        }`}
+                      >
+                        {task.deadline || '—'}
+                      </TableCell>
+
+                      <TableCell className="align-middle px-3">
+                        {/* Revealed on hover for a calmer table, but always
+                            present for keyboard and screen-reader users. */}
+                        <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(task)}
+                            aria-label={`Edit ${task.taskName}`}
+                            className="p-1.5 rounded-md text-fg-subtle hover:text-fg hover:bg-surface transition-colors"
+                          >
+                            <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
+                          </button>
+                          {canDelete && (
+                            <button
+                              type="button"
+                              onClick={() => void handleDelete(task)}
+                              aria-label={`Archive ${task.taskName}`}
+                              className="p-1.5 rounded-md text-fg-subtle hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                            </button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
         </>
       )}

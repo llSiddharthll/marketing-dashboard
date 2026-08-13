@@ -3,6 +3,14 @@
 import React, { useMemo, useState } from 'react';
 import { useData } from '@/context/DataContext';
 import { EmptyState } from '@/components/ui/Panel';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
 import type { UserRole } from '@/types/dashboard';
 import { History, Search, X } from 'lucide-react';
 
@@ -139,52 +147,46 @@ export const ActivityLogView: React.FC = () => {
 
           {/* Desktop: table */}
           <div className="hidden md:block card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-line bg-surface-sunken/60">
-                    {['When', 'Who', 'Role', 'Action', 'Target', 'Change'].map(
-                      (header) => (
-                        <th key={header} scope="col" className="px-3 py-2.5">
-                          <span className="text-label">{header}</span>
-                        </th>
-                      )
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-line">
-                  {filtered.map((entry) => (
-                    <tr
-                      key={entry.id}
-                      className="hover:bg-surface-sunken/60 transition-colors"
-                    >
-                      <td className="px-3 py-2.5 font-mono text-[12px] text-fg-subtle whitespace-nowrap tabular">
-                        {entry.date} {entry.time.slice(0, 5)}
-                      </td>
-                      <td className="px-3 py-2.5 text-[13px] font-medium">
-                        {entry.user}
-                      </td>
-                      <td className="px-3 py-2.5 text-[12.5px] text-fg-muted">
-                        {entry.role}
-                      </td>
-                      <td className="px-3 py-2.5 text-[13px]">{entry.action}</td>
-                      <td className="px-3 py-2.5 font-mono text-[12px] text-fg-muted">
-                        {entry.target || '—'}
-                      </td>
-                      <td className="px-3 py-2.5 text-[12.5px] text-fg-muted max-w-72">
-                        <span className="block truncate">
-                          {entry.newValue && entry.newValue !== 'None'
-                            ? entry.oldValue && entry.oldValue !== 'None'
-                              ? `${entry.oldValue} → ${entry.newValue}`
-                              : entry.newValue
-                            : '—'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table minWidth={880}>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-36">When</TableHead>
+                  <TableHead className="w-36">Who</TableHead>
+                  <TableHead className="w-32">Role</TableHead>
+                  <TableHead className="w-36">Action</TableHead>
+                  <TableHead className="w-32">Target</TableHead>
+                  <TableHead>Change</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((entry) => (
+                  <TableRow key={entry.id} className="hover:bg-surface-sunken/60">
+                    <TableCell className="font-mono text-[12px] text-fg-subtle whitespace-nowrap tabular">
+                      {entry.date} {entry.time.slice(0, 5)}
+                    </TableCell>
+                    <TableCell className="font-medium wrap-break-word">
+                      {entry.user}
+                    </TableCell>
+                    <TableCell className="text-fg-muted">
+                      {entry.role}
+                    </TableCell>
+                    <TableCell className="wrap-break-word">
+                      {entry.action}
+                    </TableCell>
+                    <TableCell className="font-mono text-[12px] text-fg-muted wrap-break-word">
+                      {entry.target || '—'}
+                    </TableCell>
+                    <TableCell className="text-fg-muted wrap-break-word leading-relaxed">
+                      {entry.newValue && entry.newValue !== 'None'
+                        ? entry.oldValue && entry.oldValue !== 'None'
+                          ? `${entry.oldValue} → ${entry.newValue}`
+                          : entry.newValue
+                        : '—'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </>
       )}

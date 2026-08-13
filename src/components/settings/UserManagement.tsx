@@ -18,6 +18,14 @@ import * as api from '@/lib/client/apiClient';
 import { ApiError } from '@/lib/client/apiClient';
 import type { AppUser, UserRole } from '@/types/dashboard';
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
+import {
   Users as UsersIcon,
   UserPlus,
   ShieldCheck,
@@ -174,30 +182,32 @@ export const UserManagement: React.FC = () => {
       )}
 
       {/* User table */}
-      <div className="overflow-x-auto -mx-6 px-6">
-        <table className="w-full text-left text-xs min-w-[640px]">
-          <thead className="border-b border-slate-200 dark:border-slate-800 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
-            <tr>
-              <th scope="col" className="py-2.5 pr-4">Person</th>
-              <th scope="col" className="py-2.5 pr-4">Role</th>
-              <th scope="col" className="py-2.5 pr-4">Status</th>
-              <th scope="col" className="py-2.5 pr-4">Last sign-in</th>
-              <th scope="col" className="py-2.5 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+      <div className="card overflow-hidden">
+        <Table minWidth={700}>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>Person</TableHead>
+              <TableHead className="w-40">Role</TableHead>
+              <TableHead className="w-28">Status</TableHead>
+              <TableHead className="w-32">Last sign-in</TableHead>
+              <TableHead className="w-20 text-right">
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loading && users.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="py-8 text-center text-slate-400">
+              <TableRow>
+                <TableCell colSpan={5} className="py-8 text-center text-fg-subtle">
                   Loading people…
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : users.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="py-8 text-center text-slate-400">
+              <TableRow>
+                <TableCell colSpan={5} className="py-8 text-center text-fg-subtle">
                   Nobody has been added yet.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               users.map((user) => {
                 const isSelf =
@@ -205,23 +215,25 @@ export const UserManagement: React.FC = () => {
                 const busy = busyEmail === user.email;
 
                 return (
-                  <tr
+                  <TableRow
                     key={user.email}
-                    className={`transition-colors ${busy ? 'opacity-50' : ''}`}
+                    className={`hover:bg-surface-sunken/60 ${busy ? 'opacity-50' : ''}`}
                   >
-                    <td className="py-3 pr-4">
-                      <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <TableCell>
+                      <div className="font-semibold text-fg flex items-center gap-1.5">
                         {user.name}
                         {isSelf && (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-surface-sunken text-fg-subtle border border-line">
                             You
                           </span>
                         )}
                       </div>
-                      <div className="text-slate-500 mt-0.5">{user.email}</div>
-                    </td>
+                      <div className="text-fg-subtle mt-0.5 wrap-break-word">
+                        {user.email}
+                      </div>
+                    </TableCell>
 
-                    <td className="py-3 pr-4">
+                    <TableCell>
                       <label className="sr-only" htmlFor={`role-${user.email}`}>
                         Role for {user.name}
                       </label>
@@ -242,7 +254,7 @@ export const UserManagement: React.FC = () => {
                             `${user.name} is now ${event.target.value}.`
                           )
                         }
-                        className="px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-white disabled:opacity-60"
+                        className="field py-1.5 text-[12.5px] font-medium disabled:opacity-60"
                       >
                         {ROLES.map((role) => (
                           <option key={role} value={role}>
@@ -250,28 +262,28 @@ export const UserManagement: React.FC = () => {
                           </option>
                         ))}
                       </select>
-                    </td>
+                    </TableCell>
 
-                    <td className="py-3 pr-4">
+                    <TableCell>
                       <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                        className={`inline-flex px-2 py-0.5 rounded-md text-[11.5px] font-medium border ${
                           user.status === 'Active'
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900'
-                            : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-900'
+                            : 'bg-surface-sunken text-fg-subtle border-line'
                         }`}
                       >
                         {user.status}
                       </span>
-                    </td>
+                    </TableCell>
 
-                    <td className="py-3 pr-4 text-slate-500">
+                    <TableCell className="text-fg-muted">
                       {user.lastLoginAt
                         ? new Date(user.lastLoginAt).toLocaleDateString()
                         : 'Never'}
-                    </td>
+                    </TableCell>
 
-                    <td className="py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-0.5">
                         <button
                           onClick={() =>
                             void run(
@@ -301,7 +313,7 @@ export const UserManagement: React.FC = () => {
                               ? `Suspend ${user.name}`
                               : `Restore ${user.name}`
                           }
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+                          className="p-1.5 rounded-md text-fg-subtle hover:text-fg hover:bg-surface transition-colors disabled:opacity-50"
                         >
                           {user.status === 'Active' ? (
                             <Ban className="w-3.5 h-3.5" />
@@ -315,18 +327,18 @@ export const UserManagement: React.FC = () => {
                           disabled={busy}
                           title="Remove access"
                           aria-label={`Remove ${user.name}`}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors disabled:opacity-50"
+                          className="p-1.5 rounded-md text-fg-subtle hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors disabled:opacity-50"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <p className="text-[11px] text-slate-500 leading-relaxed flex items-start gap-1.5">

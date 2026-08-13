@@ -7,6 +7,14 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/Panel';
 import { PriorityIndicator } from '@/components/ui/StatusBadge';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
 import { TaskDrawer } from '@/components/tasks/TaskDrawer';
 import { daysBetween, today } from '@/lib/dates';
 import { LIMITS } from '@/lib/validation';
@@ -224,176 +232,152 @@ export const PendingApprovalsView: React.FC = () => {
 
       {/* Desktop: table */}
       <div className="hidden lg:block card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-line bg-surface-sunken/60">
-                <th scope="col" className="px-3 py-2.5 min-w-56">
-                  <span className="text-label">Task</span>
-                </th>
-                <th scope="col" className="px-3 py-2.5 w-36">
-                  <span className="text-label">Project</span>
-                </th>
-                <th scope="col" className="px-3 py-2.5 w-32">
-                  <span className="text-label">Assigned to</span>
-                </th>
-                <th scope="col" className="px-3 py-2.5 w-32">
-                  <span className="text-label">Agency / vendor</span>
-                </th>
-                <th scope="col" className="px-3 py-2.5 w-24">
-                  <span className="text-label">Priority</span>
-                </th>
-                {/* These three were required by the brief and absent before. */}
-                <th scope="col" className="px-3 py-2.5 w-24">
-                  <span className="text-label">Waiting</span>
-                </th>
-                <th scope="col" className="px-3 py-2.5 w-28">
-                  <span className="text-label">Deadline</span>
-                </th>
-                {/* Cost, BOQ and To route the approval decision — asked for
-                    directly: what does this cost, what's the BOQ, and who
-                    does it need to go to. */}
-                <th scope="col" className="px-3 py-2.5 w-24">
-                  <span className="text-label">Cost</span>
-                </th>
-                <th scope="col" className="px-3 py-2.5 w-16 text-center">
-                  <span className="text-label">BOQ</span>
-                </th>
-                <th scope="col" className="px-3 py-2.5 w-28">
-                  <span className="text-label">To</span>
-                </th>
-                <th scope="col" className="px-3 py-2.5 w-16 text-center">
-                  <span className="text-label">Notes</span>
-                </th>
-                <th scope="col" className="px-3 py-2.5 w-52 text-right">
-                  <span className="text-label">Decision</span>
-                </th>
-              </tr>
-            </thead>
+        <Table minWidth={1500}>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-60">Task</TableHead>
+              <TableHead className="w-36">Project</TableHead>
+              <TableHead className="w-32">Assigned to</TableHead>
+              <TableHead className="w-32">Agency / vendor</TableHead>
+              <TableHead className="w-24">Priority</TableHead>
+              {/* These three were required by the brief and absent before. */}
+              <TableHead className="w-24">Waiting</TableHead>
+              <TableHead className="w-28">Deadline</TableHead>
+              {/* Cost, BOQ and To route the approval decision — asked for
+                  directly: what does this cost, what's the BOQ, and who
+                  does it need to go to. */}
+              <TableHead className="w-28">Cost</TableHead>
+              <TableHead className="w-16 text-center">BOQ</TableHead>
+              <TableHead className="w-32">To</TableHead>
+              <TableHead className="w-16 text-center">Notes</TableHead>
+              <TableHead className="w-56 text-right">Decision</TableHead>
+            </TableRow>
+          </TableHeader>
 
-            <tbody className="divide-y divide-line">
-              {pending.map((task) => (
-                <tr key={task.id} className="hover:bg-surface-sunken/60 transition-colors">
-                  <td className="px-3 py-3">
+          <TableBody>
+            {pending.map((task) => (
+              <TableRow key={task.id} className="hover:bg-surface-sunken/60">
+                <TableCell>
+                  <button
+                    type="button"
+                    onClick={() => setViewing(task)}
+                    className="text-left group w-full"
+                  >
+                    <span className="block text-[13.5px] font-medium group-hover:text-accent transition-colors wrap-break-word">
+                      {task.taskName}
+                    </span>
+                    {task.taskBrief && (
+                      <span className="block text-[12.5px] text-fg-subtle wrap-break-word leading-relaxed mt-1">
+                        {task.taskBrief}
+                      </span>
+                    )}
+                  </button>
+                </TableCell>
+                <TableCell className="text-fg-muted wrap-break-word">
+                  {task.project}
+                </TableCell>
+                <TableCell className="wrap-break-word">
+                  {task.internalPoc}
+                </TableCell>
+                <TableCell className="text-fg-muted wrap-break-word">
+                  {task.agency || task.vendor || '—'}
+                </TableCell>
+                <TableCell>
+                  <PriorityIndicator priority={task.priority} />
+                </TableCell>
+                <TableCell className="text-fg-muted tabular">
+                  {waitingLabel(task)}
+                </TableCell>
+                <TableCell
+                  className={`tabular ${
+                    task.isOverdue
+                      ? 'text-rose-600 dark:text-rose-400 font-medium'
+                      : 'text-fg-muted'
+                  }`}
+                >
+                  {task.deadline || '—'}
+                </TableCell>
+                <TableCell className="text-fg-muted tabular">
+                  {formatCost(task.budget)}
+                </TableCell>
+                <TableCell className="text-center">
+                  {task.boqLink ? (
+                    <a
+                      href={task.boqLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(event) => event.stopPropagation()}
+                      aria-label={`Open BOQ for ${task.taskName}`}
+                      className="inline-flex text-fg-muted hover:text-accent transition-colors"
+                    >
+                      <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
+                    </a>
+                  ) : (
+                    <span className="text-fg-subtle" aria-hidden="true">
+                      —
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell className="text-fg-muted wrap-break-word">
+                  {task.approver || '—'}
+                </TableCell>
+                <TableCell className="text-center">
+                  {(task.comments?.length ?? 0) > 0 ? (
                     <button
                       type="button"
                       onClick={() => setViewing(task)}
-                      className="text-left group"
+                      className="inline-flex items-center gap-1 text-[12.5px] text-fg-muted hover:text-fg transition-colors"
+                      aria-label={`${task.comments!.length} comments on ${task.taskName}`}
                     >
-                      <span className="block text-[13.5px] font-medium group-hover:text-accent transition-colors">
-                        {task.taskName}
-                      </span>
-                      {task.taskBrief && (
-                        <span className="block text-[12.5px] text-fg-subtle truncate max-w-72">
-                          {task.taskBrief}
-                        </span>
-                      )}
+                      <MessageSquare className="w-3.5 h-3.5" aria-hidden="true" />
+                      {task.comments!.length}
                     </button>
-                  </td>
-                  <td className="px-3 py-3 text-[13px] text-fg-muted">
-                    {task.project}
-                  </td>
-                  <td className="px-3 py-3 text-[13px]">{task.internalPoc}</td>
-                  <td className="px-3 py-3 text-[13px] text-fg-muted">
-                    {task.agency || task.vendor || '—'}
-                  </td>
-                  <td className="px-3 py-3">
-                    <PriorityIndicator priority={task.priority} />
-                  </td>
-                  <td className="px-3 py-3 text-[13px] text-fg-muted tabular">
-                    {waitingLabel(task)}
-                  </td>
-                  <td
-                    className={`px-3 py-3 text-[13px] tabular ${
-                      task.isOverdue
-                        ? 'text-rose-600 dark:text-rose-400 font-medium'
-                        : 'text-fg-muted'
-                    }`}
-                  >
-                    {task.deadline || '—'}
-                  </td>
-                  <td className="px-3 py-3 text-[13px] text-fg-muted tabular">
-                    {formatCost(task.budget)}
-                  </td>
-                  <td className="px-3 py-3 text-center">
-                    {task.boqLink ? (
-                      <a
-                        href={task.boqLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(event) => event.stopPropagation()}
-                        aria-label={`Open BOQ for ${task.taskName}`}
-                        className="inline-flex text-fg-muted hover:text-accent transition-colors"
+                  ) : (
+                    <span className="text-fg-subtle" aria-hidden="true">
+                      —
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {canDecide ? (
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        loading={busyId === task.id}
+                        onClick={() => void handleApprove(task)}
+                        icon={
+                          <CheckCircle2
+                            className="w-3.5 h-3.5"
+                            aria-hidden="true"
+                          />
+                        }
                       >
-                        <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
-                      </a>
-                    ) : (
-                      <span className="text-fg-subtle" aria-hidden="true">
-                        —
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-3 text-[13px] text-fg-muted">
-                    {task.approver || '—'}
-                  </td>
-                  <td className="px-3 py-3 text-center">
-                    {(task.comments?.length ?? 0) > 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => setViewing(task)}
-                        className="inline-flex items-center gap-1 text-[12.5px] text-fg-muted hover:text-fg transition-colors"
-                        aria-label={`${task.comments!.length} comments on ${task.taskName}`}
+                        Approve
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setRejecting(task);
+                          setReason('');
+                          setReasonError(null);
+                        }}
                       >
-                        <MessageSquare className="w-3.5 h-3.5" aria-hidden="true" />
-                        {task.comments!.length}
-                      </button>
-                    ) : (
-                      <span className="text-fg-subtle" aria-hidden="true">
-                        —
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-3">
-                    {canDecide ? (
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          loading={busyId === task.id}
-                          onClick={() => void handleApprove(task)}
-                          icon={
-                            <CheckCircle2
-                              className="w-3.5 h-3.5"
-                              aria-hidden="true"
-                            />
-                          }
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => {
-                            setRejecting(task);
-                            setReason('');
-                            setReasonError(null);
-                          }}
-                        >
-                          Send back
-                        </Button>
-                      </div>
-                    ) : (
-                      <span className="flex items-center justify-end gap-1 text-[12.5px] text-fg-subtle">
-                        <Lock className="w-3 h-3" aria-hidden="true" />
-                        Management only
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                        Send back
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="flex items-center justify-end gap-1 text-[12.5px] text-fg-subtle">
+                      <Lock className="w-3 h-3" aria-hidden="true" />
+                      Management only
+                    </span>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Rejection */}

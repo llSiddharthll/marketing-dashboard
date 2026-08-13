@@ -8,6 +8,14 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/Panel';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
+import {
   Plus,
   Pencil,
   Ban,
@@ -237,128 +245,113 @@ export const MasterDataView: React.FC = () => {
         </div>
       ) : (
         <div className="card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-line bg-surface-sunken/60">
-                  <th scope="col" className="px-4 py-2.5 min-w-44">
-                    <span className="text-label">Name</span>
-                  </th>
-                  <th scope="col" className="px-4 py-2.5 hidden sm:table-cell">
-                    <span className="text-label">Notes</span>
-                  </th>
-                  <th scope="col" className="px-4 py-2.5 w-28">
-                    <span className="text-label">Used by</span>
-                  </th>
-                  <th scope="col" className="px-4 py-2.5 w-28">
-                    <span className="text-label">Status</span>
-                  </th>
-                  {canManage && (
-                    <th scope="col" className="px-4 py-2.5 w-28 text-right">
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {items.map((item) => {
-                  const references = usage.get(item.name) ?? 0;
-                  return (
-                    <tr
-                      key={item.id}
-                      className="hover:bg-surface-sunken/60 transition-colors"
-                    >
-                      <td className="px-4 py-3 text-[13.5px] font-medium">
-                        {item.name}
-                      </td>
-                      <td className="px-4 py-3 text-[13px] text-fg-muted hidden sm:table-cell">
-                        <span className="block truncate max-w-72">
-                          {item.description || '—'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-[13px] tabular">
-                        {references === 0 ? (
-                          <span className="text-fg-muted">—</span>
-                        ) : (
+          <Table minWidth={640}>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-52">Name</TableHead>
+                <TableHead className="hidden sm:table-cell">Notes</TableHead>
+                <TableHead className="w-28">Used by</TableHead>
+                <TableHead className="w-28">Status</TableHead>
+                {canManage && (
+                  <TableHead className="w-28 text-right">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
+                )}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((item) => {
+                const references = usage.get(item.name) ?? 0;
+                return (
+                  <TableRow key={item.id} className="hover:bg-surface-sunken/60">
+                    <TableCell className="font-medium wrap-break-word">
+                      {item.name}
+                    </TableCell>
+                    <TableCell className="text-fg-muted hidden sm:table-cell wrap-break-word leading-relaxed">
+                      {item.description || '—'}
+                    </TableCell>
+                    <TableCell className="tabular">
+                      {references === 0 ? (
+                        <span className="text-fg-muted">—</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setTaskListItem(item)}
+                          className="text-accent hover:underline"
+                        >
+                          {references} task{references === 1 ? '' : 's'}
+                        </button>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[12px] font-medium ${
+                          item.status === 'Active'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-900'
+                            : 'bg-surface-sunken text-fg-subtle border-line'
+                        }`}
+                      >
+                        {item.status === 'Active' ? 'Active' : 'Inactive'}
+                      </span>
+                    </TableCell>
+                    {canManage && (
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-0.5">
                           <button
                             type="button"
-                            onClick={() => setTaskListItem(item)}
-                            className="text-accent hover:underline"
+                            onClick={() => openEdit(item)}
+                            aria-label={`Edit ${item.name}`}
+                            className="p-1.5 rounded-md text-fg-subtle hover:text-fg hover:bg-surface transition-colors"
                           >
-                            {references} task{references === 1 ? '' : 's'}
+                            <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
                           </button>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[12px] font-medium ${
-                            item.status === 'Active'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-900'
-                              : 'bg-surface-sunken text-fg-subtle border-line'
-                          }`}
-                        >
-                          {item.status === 'Active' ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      {canManage && (
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-end gap-0.5">
-                            <button
-                              type="button"
-                              onClick={() => openEdit(item)}
-                              aria-label={`Edit ${item.name}`}
-                              className="p-1.5 rounded-md text-fg-subtle hover:text-fg hover:bg-surface transition-colors"
-                            >
-                              <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                void updateMasterItem(item, {
-                                  status:
-                                    item.status === 'Active'
-                                      ? 'Inactive'
-                                      : 'Active',
-                                })
-                              }
-                              aria-label={
-                                item.status === 'Active'
-                                  ? `Deactivate ${item.name}`
-                                  : `Reactivate ${item.name}`
-                              }
-                              title={
-                                item.status === 'Active'
-                                  ? 'Hide from new dropdowns'
-                                  : 'Offer in dropdowns again'
-                              }
-                              className="p-1.5 rounded-md text-fg-subtle hover:text-fg hover:bg-surface transition-colors"
-                            >
-                              {item.status === 'Active' ? (
-                                <Ban className="w-3.5 h-3.5" aria-hidden="true" />
-                              ) : (
-                                <RotateCcw
-                                  className="w-3.5 h-3.5"
-                                  aria-hidden="true"
-                                />
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => void openRemove(item)}
-                              aria-label={`Remove ${item.name}`}
-                              className="p-1.5 rounded-md text-fg-subtle hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                            </button>
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void updateMasterItem(item, {
+                                status:
+                                  item.status === 'Active'
+                                    ? 'Inactive'
+                                    : 'Active',
+                              })
+                            }
+                            aria-label={
+                              item.status === 'Active'
+                                ? `Deactivate ${item.name}`
+                                : `Reactivate ${item.name}`
+                            }
+                            title={
+                              item.status === 'Active'
+                                ? 'Hide from new dropdowns'
+                                : 'Offer in dropdowns again'
+                            }
+                            className="p-1.5 rounded-md text-fg-subtle hover:text-fg hover:bg-surface transition-colors"
+                          >
+                            {item.status === 'Active' ? (
+                              <Ban className="w-3.5 h-3.5" aria-hidden="true" />
+                            ) : (
+                              <RotateCcw
+                                className="w-3.5 h-3.5"
+                                aria-hidden="true"
+                              />
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void openRemove(item)}
+                            aria-label={`Remove ${item.name}`}
+                            className="p-1.5 rounded-md text-fg-subtle hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                          </button>
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
       )}
 

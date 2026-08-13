@@ -12,6 +12,15 @@
 
 import React, { useId, useState } from 'react';
 import { BarChart3, Table as TableIcon } from 'lucide-react';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableCaption,
+} from '@/components/ui/table';
 
 export interface ChartTableColumn {
   header: string;
@@ -88,53 +97,50 @@ export const ChartCard: React.FC<ChartCardProps> = ({
       {view === 'chart' ? (
         <div className="p-4">{children}</div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <caption className="sr-only">{title}, as a table</caption>
-            <thead>
-              <tr className="border-b border-line bg-surface-sunken/60">
-                {columns.map((column) => (
-                  <th
-                    key={column.header}
-                    scope="col"
-                    className={`px-4 py-2.5 ${column.numeric ? 'text-right' : ''}`}
-                  >
-                    <span className="text-label">{column.header}</span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {rows.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="px-4 py-8 text-center text-meta"
-                  >
-                    No data yet.
-                  </td>
-                </tr>
-              ) : (
-                rows.map((row, rowIndex) => (
-                  <tr key={rowIndex}>
-                    {row.map((value, cellIndex) => (
-                      <td
-                        key={cellIndex}
-                        className={`px-4 py-2.5 text-[13px] ${
-                          columns[cellIndex]?.numeric
-                            ? 'text-right tabular text-fg-muted'
-                            : 'text-fg'
-                        }`}
-                      >
-                        {value}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <Table minWidth={480}>
+          <TableCaption>{title}, as a table</TableCaption>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              {columns.map((column) => (
+                <TableHead
+                  key={column.header}
+                  className={column.numeric ? 'text-right' : ''}
+                >
+                  {column.header}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="py-8 text-center text-meta"
+                >
+                  No data yet.
+                </TableCell>
+              </TableRow>
+            ) : (
+              rows.map((row, rowIndex) => (
+                <TableRow key={rowIndex} className="hover:bg-surface-sunken/60">
+                  {row.map((value, cellIndex) => (
+                    <TableCell
+                      key={cellIndex}
+                      className={
+                        columns[cellIndex]?.numeric
+                          ? 'text-right tabular text-fg-muted'
+                          : 'text-fg wrap-break-word'
+                      }
+                    >
+                      {value}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       )}
     </section>
   );
